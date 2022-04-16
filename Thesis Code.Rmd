@@ -176,23 +176,29 @@ skrrrahh("bigshaq")
 ```{r}
 df0 <- rbind(df0.n10, df0.n32, df0.n64, df0.n100, df0.n500)
 
+# Convert relevant columns to numeric
+df0[c(1:15, 21:23, 27, 28)] <- sapply(df0[c(1:15, 21:23, 27, 28)], as.numeric)
+
 ## Convert BF.evidence, n, and difference to factor
 df0$BF.evidence <- as.factor(df0$BF.evidence)
 df0$n <- as.factor(df0$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
 df0$difference <- as.factor(df0$difference) 
-df0$BF3.decision <- as.factor(df0$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
-df0$BF10.decision <- as.factor(df0$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
-df0$BF30.decision <- as.factor(df0$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
-df0$BF100.decision <- as.factor(df0$BF100.decision) %>% fct_relevel(c("null", "U", "alt"))
-df0$p.decision <- as.factor(df0$p.decision) %>% fct_relevel(c("null", "alt"))
-df0$HDI.decision <- as.factor(df0$HDI.decision)  %>% fct_relevel(c("null", "alt"))
-df0$HDI.est.correct <- as.factor(df0$HDI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
-df0$CI.est.correct <- as.factor(df0$CI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+df0$BF3.decision <- as_factor(df0$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF10.decision <- as_factor(df0$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF30.decision <- as_factor(df0$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF100.decision <- as_factor(df0$BF100.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$p.decision <- as_factor(df0$p.decision) %>% fct_relevel(c("null", "alt"))
+df0$HDI.decision <- as_factor(df0$HDI.decision)  %>% fct_relevel(c("null", "alt"))
+df0$HDI.est.correct <- as_factor(df0$HDI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+df0$CI.est.correct <- as_factor(df0$CI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
 ```
 
 ## Combine results for delta = .5
 ```{r}
 df <- rbind(df.n10, df.n32, df.n64, df.n100, df.n500)
+
+# Convert relevant columns to numeric
+df[c(1:15, 21:23, 27, 28)] <- sapply(df[c(1:15, 21:23, 27, 28)], as.numeric)
 
 ## Convert BF.evidence, n, and difference to factor
 df$BF.evidence <- as.factor(df$BF.evidence)
