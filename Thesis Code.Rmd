@@ -1,0 +1,387 @@
+---
+title: "Thesis Practice"
+author: "Pepijn Vink"
+date: "3/6/2022"
+output: pdf_document
+---
+Packages
+```{r}
+library(BayesFactor)
+library(tidyverse)
+library(magrittr)
+library(jtools)
+library(bayestestR)
+library(gmodels)
+library(BRRR)
+library(skimr)
+library(tidybayes)
+library(patchwork)
+library(pwr)
+```
+Create column names
+```{r}
+col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF100.decision", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
+```
+Write function to make simulation more smooth. BF 'cutoffs' and evidence levels are based on Jeffrey's (1961). For p values, CI's and HDI's, 1 indicates rejection of the null and 0 no rejection. For the BF's at every cutoff value, 0 indicates preference for the null, 1 indicates no preference, and 2 indicates preference for the alternative/complement. Posterior probabilities are based on equal prior odds.
+
+```{r}
+freq.bayes <- function(sample.size = 10, iterations = 10, mean.low = 100, sd = 10, difference = 0, seed = NA){
+col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF100.decision", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
+
+save <- matrix(data = NA, nrow = iterations, ncol = 28)
+
+set.seed(seed)
+  for(i in 1:iterations){
+    diff <- difference
+    n <- sample.size
+    
+    mean2 <- mean.low
+    mean1 <- mean2 + diff
+    sd <- 10
+    
+    y1 <- rnorm(n = n, mean = mean1, sd = sd)
+    y2 <- rnorm(n = n, mean = mean2, sd = sd)
+    
+    result <- t.test(y1, y2)
+    p <- result$p.value
+    ci <- result$conf.int
+    
+    mean_y1 <- mean(y1)
+    mean_y2 <- mean(y2)
+    
+    ci.low <- ci[1]
+    ci.high <- ci[2]
+    
+    mean_diff <- mean(y1) - mean(y2)
+    
+    bfa <- ttestBF(y1, y2)
+    
+    bf0 <- 1/bfa
+    
+    post <- bayestestR::hdi(bfa)
+    
+    HDI.low <- post$CI_low
+    
+    HDI.high <- post$CI_high
+    
+    BFa <- extractBF(bfa)$bf
+    
+    BF0 <- extractBF(bf0)$bf
+    
+    p_correct <- case_when(p < 0.05 ~ "alt",
+                           TRUE ~ "null")
+    
+    BF.3 <- case_when(BF0 >= 3 ~ "null",
+                      BF0 < 3 & BFa < 3 ~ "U",
+                      BFa >= 3 ~ "alt")
+
+    BF.10 <- case_when(BF0 >= 10 ~ "null",
+                      BF0 < 10 & BFa < 10 ~ "U",
+                      BFa >= 10 ~ "alt")
+    
+    BF.30 <- case_when(BF0 >= 30 ~ "null",
+                      BF0 < 30 & BFa < 30 ~ "U",
+                      BFa >= 30 ~ "alt")
+    
+    BF.100 <- case_when(BF0 >= 100 ~ "null",
+                      BF0 < 100 & BFa < 100 ~ "U",
+                      BFa >= 100 ~ "alt")
+    
+    BF.evidence <- case_when(BF0 < 1/100 ~ -5,
+                             BF0 >= 1/100 & BF0 < 1/30 ~ -4,
+                             BF0 >= 1/30 & BF0 < 1/10 ~ -3,
+                             BF0 >= 1/10 & BF0 < 1/3 ~ -2,
+                             BF0 >= 1/3 & BF0 < 1 ~ -1,
+                             BF0 == 1 ~ 0,
+                             BF0 > 1 & BF0 <= 3 ~ 1,
+                             BF0 > 3 & BF0 <= 10 ~ 2,
+                             BF0 > 10 & BF0 <= 30 ~ 3,
+                             BF0 > 30 & BF0 <= 100 ~ 4,
+                             BF0 > 100 ~ 5)
+    post.alt <- 1/(BF0+1)
+    
+    post.null <- 1/(BFa+1)
+      
+    HDI_decision <- case_when(HDI.low <= 0 & HDI.high >= 0 ~ "null",
+                             TRUE ~ "alt")
+    
+    HDI_correct_est <- case_when(HDI.low <= diff & HDI.high >= diff ~ "correct",
+                                 TRUE ~ "incorrect")
+    
+    CI_correct_est <- case_when(ci.low <= diff & ci.high >= diff ~ "correct",
+                                 TRUE ~ "incorrect")
+    
+    HDI.width <- HDI.high - HDI.low
+    
+    CI.width <- ci.high - ci.low
+    
+    vec <- c(diff, n, mean1, mean2, sd, mean_y1, mean_y2, mean_diff, p, ci.low, ci.high, HDI.low, HDI.high, BF0, BFa, p_correct, BF.3, BF.10, BF.30, BF.100, BF.evidence,  post.null, post.alt, HDI_decision, CI_correct_est, HDI_correct_est, CI.width, HDI.width)
+    
+    save[i,] <- vec
+  }
+colnames(save) <- col_names
+save
+}
+```
+# Simulate different sample sizes
+
+## Power analysis to determine samle size for power of 50% and 80%
+```{r}
+pwr.t.test(d = 0.5, power = 0.5, type = "two.sample", alternative = "two.sided")
+pwr.t.test(d = 0.5, power = 0.8, type = "two.sample", alternative = "two.sided")
+```
+
+## No effect
+```{r}
+# n = 10
+df0.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000, seed = 42))
+
+# n = 32
+df0.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000, seed = 42))
+
+# n = 64
+df0.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed = 42))
+
+# n = 100
+df0.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42))
+
+# n = 500
+df0.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42))
+
+skrrrahh("bigshaq")
+```
+
+
+## Medium effect (delta = 0.5, difference = 5)
+```{r}
+# n = 10
+df.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000, seed = 42, difference = 5))
+
+# n = 32
+df.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000, seed = 42, difference = 5))
+
+# n = 64
+df.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed = 42, difference = 5))
+
+# n = 100
+df.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42, difference = 5))
+
+# n = 500
+df.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42, difference = 5))
+
+skrrrahh("bigshaq")
+```
+
+## Combine results for null
+```{r}
+df0 <- rbind(df0.n10, df0.n32, df0.n64, df0.n100, df0.n500)
+
+## Convert BF.evidence, n, and difference to factor
+df0$BF.evidence <- as.factor(df0$BF.evidence)
+df0$n <- as.factor(df0$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
+df0$difference <- as.factor(df0$difference) 
+df0$BF3.decision <- as.factor(df0$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF10.decision <- as.factor(df0$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF30.decision <- as.factor(df0$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$BF100.decision <- as.factor(df0$BF100.decision) %>% fct_relevel(c("null", "U", "alt"))
+df0$p.decision <- as.factor(df0$p.decision) %>% fct_relevel(c("null", "alt"))
+df0$HDI.decision <- as.factor(df0$HDI.decision)  %>% fct_relevel(c("null", "alt"))
+df0$HDI.est.correct <- as.factor(df0$HDI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+df0$CI.est.correct <- as.factor(df0$CI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+```
+
+## Combine results for delta = .5
+```{r}
+df <- rbind(df.n10, df.n32, df.n64, df.n100, df.n500)
+
+## Convert BF.evidence, n, and difference to factor
+df$BF.evidence <- as.factor(df$BF.evidence)
+df$n <- as.factor(df$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
+df$difference <- as.factor(df$difference) 
+df$BF3.decision <- as.factor(df$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
+df$BF10.decision <- as.factor(df$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
+df$BF30.decision <- as.factor(df$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
+df$BF100.decision <- as.factor(df$BF100.decision) %>% fct_relevel(c("null", "U", "alt"))
+df$p.decision <- as.factor(df$p.decision) %>% fct_relevel(c("null", "alt"))
+df$HDI.decision <- as.factor(df$HDI.decision)  %>% fct_relevel(c("null", "alt"))
+df$HDI.est.correct <- as.factor(df$HDI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+df$CI.est.correct <- as.factor(df$CI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+```
+# Visualizations
+
+## Visualize p-value distributions
+```{r}
+(p.dis.n10 <- ggplot(df[df$n == 10,], aes(p)) + geom_histogram(bins = 100) + theme_apa() + scale_fill_grey())
+(p.dis.n32 <- ggplot(df[df$n == 32,], aes(p)) + geom_histogram(bins = 100) + theme_apa() + scale_fill_grey())
+(p.dis.n64 <- ggplot(df[df$n == 64,], aes(p)) + geom_histogram(bins = 100) + theme_apa() + scale_fill_grey())
+(p.dis.n100 <- ggplot(df[df$n == 100,], aes(p)) + geom_histogram(bins = 100) + theme_apa() + scale_fill_grey())
+(p.dis.n500 <- ggplot(df[df$n == 500,], aes(p)) + geom_histogram(bins = 100) + theme_apa() + scale_fill_grey())
+
+(p.distributions <-
+  p.dis.n10/
+  p.dis.n32/
+  p.dis.n64/
+  p.dis.n100/
+  p.dis.n500)
+```
+
+
+## Visualize p(Ha) and BF decisions
+```{r}
+ggplot(data = df, aes(x = post.alt)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+ggplot(data = df, aes(x = p)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+
+bf3.tally <- df %>%
+  group_by(n, BF3.decision) %>%
+  tally()
+
+bf10.tally <- df %>%
+  group_by(n, BF10.decision) %>%
+  tally()
+
+bf30.tally <- df %>%
+  group_by(n, BF30.decision) %>%
+  tally()
+
+p.tally <- df %>%
+  group_by(n, p.decision) %>%
+  tally()
+
+HDI.hyp.tally <- df %>%
+  group_by(n, HDI.decision) %>%
+  tally()
+
+HDI.est.tally <- df %>%
+  group_by(n, HDI.est.correct) %>%
+  tally()
+
+CI.est.tally <- df %>%
+  group_by(n, CI.est.correct) %>%
+  tally()
+
+
+
+ggplot(bf3.tally, aes(x = n, y = nn, fill = BF3.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(bf10.tally, aes(x = n, y = nn, fill = BF10.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(bf30.tally, aes(x = n, y = nn, fill = BF30.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(p.tally, aes(x = n, y = nn, fill = p.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(HDI.hyp.tally, aes(x = n, y = nn, fill = HDI.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+
+ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+
+skrrrahh("snoop")
+praise()
+```
+
+## Examine precision of confidence interval and HDI
+```{r}
+width <- df %>%
+  group_by(n) %>%
+  select("ci.width", "hdi.width") %>%
+  skim()
+```
+
+Create density plots
+```{r}
+d.10 = data.frame(x = c(df[df$n == 10,]$ci.width, df[df$n == 10,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 10,]$ci.width), length(df[df$n == 10,]$hdi.width))))
+
+width.plot.10 <- ggplot(d.10) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d.32 = data.frame(x = c(df[df$n == 32,]$ci.width, df[df$n == 32,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 32,]$ci.width), length(df[df$n == 32,]$hdi.width))))
+
+width.plot.32 <- ggplot(d.32) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d.64 = data.frame(x = c(df[df$n == 64,]$ci.width, df[df$n == 64,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 64,]$ci.width), length(df[df$n == 64,]$hdi.width))))
+
+width.plot.64 <- ggplot(d.64) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d.100 = data.frame(x = c(df[df$n == 100,]$ci.width, df[df$n == 100,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 100,]$ci.width), length(df[df$n == 100,]$hdi.width))))
+
+width.plot.100 <- ggplot(d.100) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d.500 = data.frame(x = c(df[df$n == 500,]$ci.width, df[df$n == 500,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 500,]$ci.width), length(df[df$n == 500,]$hdi.width))))
+
+width.plot.500 <- ggplot(d.500) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+(plot <- width.plot.10/
+width.plot.32/
+width.plot.64/
+width.plot.100/
+width.plot.500)
+```
+^ Still have to fix the axes so they can be compared visually
+
+## Show corresponding conclusions for null
+```{r}
+# Set alpha and size -----------------------------------------------------------
+a <- 0.1
+s <- 0.1
+
+# For p values and Bayes factor cutoffs-----------------------------------------
+(bf3.p.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf10.p.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf30.p.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+(bf.p.plot.0 <- 
+  bf3.p.plot.0/
+  bf10.p.plot.0/
+  bf30.p.plot.0)
+
+# For HDI and BF cutoffs --------------------------------------------------------
+
+(bf3.hdi.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf10.hdi.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf30.hdi.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+(bf.hdi.plot.0 <- 
+  bf3.hdi.plot.0/
+  bf10.hdi.plot.0/
+  bf30.hdi.plot.0)
+
+# For p values and HDI ---------------------------------------------------------
+(hdi.p.plot.0 <- ggplot(df0, aes(x = HDI.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+# For CI and HDI estimation ----------------------------------------------------
+(hdi.ci.plot.0 <- ggplot(df0, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+```
+
+## Show corresponding conclusions for d = 0.5
+```{r}
+# Set alpha and size -----------------------------------------------------------
+a <- 0.1
+s <- 0.1
+
+# For p values and Bayes factor cutoffs-----------------------------------------
+(bf3.p.plot <- ggplot(df, aes(x = BF3.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf10.p.plot <- ggplot(df, aes(x = BF10.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf30.p.plot <- ggplot(df, aes(x = BF30.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+(bf.p.plot <- 
+  bf3.p.plot/
+  bf10.p.plot/
+  bf30.p.plot)
+
+# For HDI and BF cutoffs --------------------------------------------------------
+
+(bf3.hdi.plot <- ggplot(df, aes(x = BF3.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf10.hdi.plot <- ggplot(df, aes(x = BF10.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf30.hdi.plot <- ggplot(df, aes(x = BF30.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+(bf.hdi.plot <- 
+  bf3.hdi.plot/
+  bf10.hdi.plot/
+  bf30.hdi.plot)
+
+# For p values and HDI ---------------------------------------------------------
+(hdi.p.plot <- ggplot(df, aes(x = HDI.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+# For CI and HDI estimation ----------------------------------------------------
+(hdi.ci.plot <- ggplot(df, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+```
