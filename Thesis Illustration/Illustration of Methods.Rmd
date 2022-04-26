@@ -1,0 +1,48 @@
+---
+title: "Illustration of Methods"
+author: "Pepijn Vink"
+date: "4/26/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load libraries
+```{r}
+library(tidyverse)
+library(BayesFactor) # for the bayes factor
+library(bayestestR) # for the HDI
+```
+
+# Create data
+```{r}
+# create population data
+mean1 <- 105
+mean2 <- 100
+sd <- 10
+n = 50
+
+# simulate samples
+set.seed(42)
+y1 <- rnorm(n = n, mean = mean1, sd = sd)
+y2 <- rnorm(n = n, mean = mean2, sd = sd)
+
+(sd(y1))
+(sd(y2))
+```
+
+# Perform frequentist t-test
+```{r}
+(result_freq <- t.test(y1, y2))
+```
+# Perform Bayesian analyses
+```{r}
+set.seed(42)
+(BFa <- ttestBF(y1, y2))
+(BF0 <- 1/BFa)
+
+(post <- bayestestR::hdi(BFa))
+```
+
