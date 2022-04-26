@@ -288,8 +288,40 @@ width <- df %>%
   select("ci.width", "hdi.width") %>%
   skim()
 ```
+Create density plots for null
+```{r}
+d0.10 = data.frame(x = c(df0[df0$n == 10,]$ci.width, df0[df0$n == 10,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df0[df0$n == 10,]$ci.width), length(df0[df0$n == 10,]$hdi.width))))
 
-Create density plots
+width.plot0.10 <- ggplot(d0.10) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d0.32 = data.frame(x = c(df0[df0$n == 32,]$ci.width, df0[df0$n == 32,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df0[df0$n == 32,]$ci.width), length(df0[df0$n == 32,]$hdi.width))))
+
+width.plot0.32 <- ggplot(d0.32) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d0.64 = data.frame(x = c(df0[df0$n == 64,]$ci.width, df0[df0$n == 64,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df0[df0$n == 64,]$ci.width), length(df0[df0$n == 64,]$hdi.width))))
+
+width.plot0.64 <- ggplot(d0.64) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d0.100 = data.frame(x = c(df0[df0$n == 100,]$ci.width, df0[df0$n == 100,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df0[df0$n == 100,]$ci.width), length(df0[df0$n == 100,]$hdi.width))))
+
+width.plot0.100 <- ggplot(d0.100) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+d0.500 = data.frame(x = c(df0[df0$n == 500,]$ci.width, df0[df0$n == 500,]$hdi.width), 
+               type=rep(c("CI Width", "HDI Width"), c(length(df0[df0$n == 500,]$ci.width), length(df0[df0$n == 500,]$hdi.width))))
+
+width.plot0.500 <- ggplot(d.500) + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+
+(plot0 <- width.plot0.10/
+width.plot0.32/
+width.plot0.64/
+width.plot0.100/
+width.plot0.500)
+```
+Create density plots for delta = 0.5
 ```{r}
 d.10 = data.frame(x = c(df[df$n == 10,]$ci.width, df[df$n == 10,]$hdi.width), 
                type=rep(c("CI Width", "HDI Width"), c(length(df[df$n == 10,]$ci.width), length(df[df$n == 10,]$hdi.width))))
