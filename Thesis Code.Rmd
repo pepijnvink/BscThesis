@@ -181,6 +181,7 @@ df0[c(1:15, 21:23, 27, 28)] <- sapply(df0[c(1:15, 21:23, 27, 28)], as.numeric)
 
 ## Convert BF.evidence, n, and difference to factor
 df0$BF.evidence <- as.factor(df0$BF.evidence)
+df0$n_num <- df0$n
 df0$n <- as.factor(df0$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
 df0$difference <- as.factor(df0$difference) 
 df0$BF3.decision <- as_factor(df0$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
@@ -202,6 +203,7 @@ df[c(1:15, 21:23, 27, 28)] <- sapply(df[c(1:15, 21:23, 27, 28)], as.numeric)
 
 ## Convert BF.evidence, n, and difference to factor
 df$BF.evidence <- as.factor(df$BF.evidence)
+df$n_num <- df$n
 df$n <- as.factor(df$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
 df$difference <- as.factor(df$difference) 
 df$BF3.decision <- as.factor(df$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
@@ -276,6 +278,76 @@ ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() +
 ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
 
 ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+
+skrrrahh("snoop")
+praise()
+```
+
+# Create line plots
+```{r}
+ggplot(data = df, aes(x = post.alt)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+ggplot(data = df, aes(x = p)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+
+bf3.tally <- df %>%
+  group_by(n, BF3.decision) %>%
+  tally()
+
+bf10.tally <- df %>%
+  group_by(n, BF10.decision) %>%
+  tally()
+
+bf30.tally <- df %>%
+  group_by(n, BF30.decision) %>%
+  tally()
+
+p.tally <- df %>%
+  group_by(n_num, p.decision) %>%
+  tally()
+
+HDI.hyp.tally <- df %>%
+  group_by(n_num, HDI.decision) %>%
+  tally()
+
+HDI.est.tally <- df %>%
+  group_by(n, HDI.est.correct) %>%
+  tally()
+
+CI.est.tally <- df %>%
+  group_by(n, CI.est.correct) %>%
+  tally()
+
+
+
+ggplot(bf3.tally, aes(x = n, y = nn, fill = BF3.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(bf10.tally, aes(x = n, y = nn, fill = BF10.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(bf30.tally, aes(x = n, y = nn, fill = BF30.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(p.tally, aes(x = n, y = nn, fill = p.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(HDI.hyp.tally, aes(x = n, y = nn, fill = HDI.decision)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+
+ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+
+# Make line plots
+ggplot(p.tally[p.tally$p.decision == "alt", ], aes(x = n_num, y = n)) + 
+  geom_point() + 
+  geom_line() + 
+  theme_apa() + 
+  scale_fill_grey() + 
+  xlab("Sample Size") +
+  ylab("Number of Correct Samples for p-value")
+ggplot(HDI.hyp.tally[HDI.hyp.tally$HDI.decision == "alt", ], aes(x = n_num, y = n)) + 
+  geom_point() + 
+  geom_line() + 
+  theme_apa() + 
+  scale_fill_grey() + 
+  xlab("Sample Size") +
+  ylab("Number of Correct Samples for HDI")
+ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+
+ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+
 
 skrrrahh("snoop")
 praise()
@@ -422,4 +494,6 @@ s <- 0.1
 
 # For CI and HDI estimation ----------------------------------------------------
 (hdi.ci.plot <- ggplot(df, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+
+skrrrahh("snoop")
 ```
