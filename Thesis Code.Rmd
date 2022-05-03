@@ -20,15 +20,15 @@ library(pwr)
 ```
 Create column names
 ```{r}
-col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF100.decision", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
+col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF1.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF.3.cor", "BF.10.cor", "BF.30.cor", "BF.3.ninc", "BF.10.ninc", "BF.30.ninc", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
 ```
 Write function to make simulation more smooth. BF 'cutoffs' and evidence levels are based on Jeffrey's (1961). For p values, CI's and HDI's, 1 indicates rejection of the null and 0 no rejection. For the BF's at every cutoff value, 0 indicates preference for the null, 1 indicates no preference, and 2 indicates preference for the alternative/complement. Posterior probabilities are based on equal prior odds.
 
 ```{r}
 freq.bayes <- function(sample.size = 10, iterations = 10, mean.low = 100, sd = 10, difference = 0, seed = NA){
-col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF100.decision", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
+col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF1.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF.3.cor", "BF.10.cor", "BF.30.cor", "BF.3.ninc", "BF.10.ninc", "BF.30.ninc", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
 
-save <- matrix(data = NA, nrow = iterations, ncol = 28)
+save <- matrix(data = NA, nrow = iterations, ncol = 34)
 
 set.seed(seed)
   for(i in 1:iterations){
@@ -83,9 +83,31 @@ set.seed(seed)
                       BF0 < 30 & BFa < 30 ~ "U",
                       BFa >= 30 ~ "alt")
     
-    BF.100 <- case_when(BF0 >= 100 ~ "null",
-                      BF0 < 100 & BFa < 100 ~ "U",
-                      BFa >= 100 ~ "alt")
+    BF.1 <- case_when(BF0 > 1 ~ "null",
+                              TRUE ~ "alt")
+    
+    BF.3.dich.cor <- case_when(BFa > 3 & diff != 0 ~ "correct",
+                               BF0 > 3 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
+    BF.10.dich.cor <- case_when(BFa > 10 & diff != 0 ~ "correct",
+                               BF0 > 10 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
+    
+    BF.30.dich.cor <- case_when(BFa > 30 & diff != 0 ~ "correct",
+                               BF0 > 30 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
+    
+    BF.3.dich.nincor <- case_when(BF0 < 3 & diff != 0 ~ "correct",
+                               BFa < 3 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
+    
+    BF.10.dich.nincor <- case_when(BF0 < 10 & diff != 0 ~ "correct",
+                               BFa < 10 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
+    
+    BF.30.dich.nincor <- case_when(BF0 < 30 & diff != 0 ~ "correct",
+                               BFa < 30 & diff == 0 ~ "correct",
+                               TRUE ~ "incorrect")
     
     BF.evidence <- case_when(BF0 < 1/100 ~ -5,
                              BF0 >= 1/100 & BF0 < 1/30 ~ -4,
@@ -115,7 +137,7 @@ set.seed(seed)
     
     CI.width <- ci.high - ci.low
     
-    vec <- c(diff, n, mean1, mean2, sd, mean_y1, mean_y2, mean_diff, p, ci.low, ci.high, HDI.low, HDI.high, BF0, BFa, p_correct, BF.3, BF.10, BF.30, BF.100, BF.evidence,  post.null, post.alt, HDI_decision, CI_correct_est, HDI_correct_est, CI.width, HDI.width)
+    vec <- c(diff, n, mean1, mean2, sd, mean_y1, mean_y2, mean_diff, p, ci.low, ci.high, HDI.low, HDI.high, BF0, BFa, p_correct, BF.1, BF.3, BF.10, BF.30, BF.3.dich.cor, BF.10.dich.cor, BF.30.dich.cor, BF.3.dich.nincor, BF.10.dich.nincor, BF.30.dich.nincor, BF.evidence,  post.null, post.alt, HDI_decision, CI_correct_est, HDI_correct_est, CI.width, HDI.width)
     
     save[i,] <- vec
   }
