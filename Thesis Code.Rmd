@@ -42,7 +42,7 @@ set.seed(seed)
     y1 <- rnorm(n = n, mean = mean1, sd = sd)
     y2 <- rnorm(n = n, mean = mean2, sd = sd)
     
-    result <- t.test(y1, y2)
+    result <- t.test(y1, y2, var.equal = TRUE)
     p <- result$p.value
     ci <- result$conf.int
     
@@ -167,8 +167,14 @@ df0.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed =
 # n = 100
 df0.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42))
 
+# n = 300
+df0.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000, seed = 42))
+
 # n = 500
 df0.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42))
+
+# n = 2000
+df0.n2000 <- as.data.frame(freq.bayes(sample.size = 2000, iterations = 10000, seed = 42))
 
 skrrrahh("bigshaq")
 ```
@@ -188,15 +194,23 @@ df.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed = 
 # n = 100
 df.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42, difference = 5))
 
+# n = 300
+df.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000, seed = 42, difference = 5))
+
 # n = 500
 df.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42, difference = 5))
+
+# n = 2000
+df.n2000 <- as.data.frame(freq.bayes(sample.size = 2000, iterations = 10000, seed = 42, difference = 5))
+
 
 skrrrahh("bigshaq")
 ```
 
+
 ## Combine results for null
 ```{r}
-df0 <- rbind(df0.n10, df0.n32, df0.n64, df0.n100, df0.n500)
+df0 <- rbind(df0.n10, df0.n32, df0.n64, df0.n100, df0.n300, df0.n500, df0.n2000)
 
 # Convert relevant columns to numeric
 df0[c(1:15, 28, 29, 33, 34)] <- sapply(df0[c(1:15, 28, 29, 33, 34)], as.numeric)
@@ -204,12 +218,24 @@ df0[c(1:15, 28, 29, 33, 34)] <- sapply(df0[c(1:15, 28, 29, 33, 34)], as.numeric)
 ## Convert BF.evidence, n, and difference to factor
 df0$BF.evidence <- as.factor(df0$BF.evidence)
 df0$n_num <- df0$n
-df0$n <- as.factor(df0$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
-df0$difference <- as.factor(df0$difference) 
+df0$n <- as.factor(df0$n) %>% fct_relevel(c("10", "32", "64", "300", "100", "500", "2000"))
 df0$BF3.decision <- as_factor(df0$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
 df0$BF10.decision <- as_factor(df0$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
 df0$BF30.decision <- as_factor(df0$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
 df0$p.decision <- as_factor(df0$p.decision) %>% fct_relevel(c("null", "alt"))
+df0$p.correct <- as.factor(case_when(df0$p <= .05 & df0$difference > 0 & df0$diff_obs  > 0 ~ "correct",
+                          df0$p <= .05 & df0$difference < 0 & df0$diff_obs  < 0 ~ "correct",
+                          df0$p > .05 & df0$difference == 0 ~ "correct",
+                          TRUE ~ "incorrect"))
+df0$HDI.correct <- as.factor(case_when(df0$HDI.decision == "null" & df0$difference == 0 ~ "correct",
+                                       df0$HDI.decision == "alt" & df0$difference > 0 & df0$diff_obs > 0 ~ "correct",
+                                       df0$HDI.decision == "alt" & df0$difference < 0 & df0$diff_obs < 0 ~ "correct",
+                                       TRUE ~ "incorrect"))
+df0$BF1.correct <- as.factor(case_when(df0$BF1.decision == "null" & df0$difference == 0 ~ "correct",
+                                       df0$BF1.decision == "alt" & df0$difference > 0 & df0$diff_obs > 0 ~ "correct",
+                                       df0$BF1.decision == "alt" & df0$difference < 0 & df0$diff_obs < 0 ~ "correct",
+                                       TRUE ~ "incorrect"))
+df0$difference <- as.factor(df0$difference) 
 df0$BF.3.cor <- as_factor(df0$BF.3.cor) %>% fct_relevel(c("incorrect", "correct"))
 df0$BF.10.cor <- as_factor(df0$BF.10.cor) %>% fct_relevel(c("incorrect", "correct"))
 df0$BF.30.cor <- as_factor(df0$BF.30.cor) %>% fct_relevel(c("incorrect", "correct"))
@@ -224,7 +250,7 @@ df0$CI.est.correct <- as_factor(df0$CI.est.correct) %>% fct_relevel(c("incorrect
 
 ## Combine results for delta = .5
 ```{r}
-df <- rbind(df.n10, df.n32, df.n64, df.n100, df.n500)
+df <- rbind(df.n10, df.n32, df.n64, df.n100, df.n300, df.n500, df.n2000)
 
 # Convert relevant columns to numeric
 df[c(1:15, 28, 29, 33, 34)] <- sapply(df[c(1:15, 28, 29, 33, 34)], as.numeric)
@@ -232,12 +258,24 @@ df[c(1:15, 28, 29, 33, 34)] <- sapply(df[c(1:15, 28, 29, 33, 34)], as.numeric)
 ## Convert BF.evidence, n, and difference to factor
 df$BF.evidence <- as.factor(df$BF.evidence)
 df$n_num <- df$n
-df$n <- as.factor(df$n) %>% fct_relevel(c("10", "32", "64", "100", "500"))
-df$difference <- as.factor(df$difference) 
+df$n <- as.factor(df$n) %>% fct_relevel(c("10", "32", "64", "300", "100", "500", "2000"))
 df$BF3.decision <- as.factor(df$BF3.decision) %>% fct_relevel(c("null", "U", "alt"))
 df$BF10.decision <- as.factor(df$BF10.decision) %>% fct_relevel(c("null", "U", "alt"))
 df$BF30.decision <- as.factor(df$BF30.decision) %>% fct_relevel(c("null", "U", "alt"))
 df$p.decision <- as.factor(df$p.decision) %>% fct_relevel(c("null", "alt"))
+df$p.correct <- as.factor(case_when(df$p <= .05 & df$difference > 0 & df$diff_obs  > 0 ~ "correct",
+                          df$p <= .05 & df$difference < 0 & df$diff_obs  < 0 ~ "correct",
+                          df$p > .05 & df$difference == 0 ~ "correct",
+                          TRUE ~ "incorrect"))
+df$HDI.correct <- as.factor(case_when(df$HDI.decision == "null" & df$difference == 0 ~ "correct",
+                                       df$HDI.decision == "alt" & df$difference > 0 & df$diff_obs > 0 ~ "correct",
+                                       df$HDI.decision == "alt" & df$difference < 0 & df$diff_obs < 0 ~ "correct",
+                                       TRUE ~ "incorrect"))
+df$BF1.correct <- as.factor(case_when(df$BF1.decision == "null" & df$difference == 0 ~ "correct",
+                                       df$BF1.decision == "alt" & df$difference > 0 & df$diff_obs > 0 ~ "correct",
+                                       df$BF1.decision == "alt" & df$difference < 0 & df$diff_obs < 0 ~ "correct",
+                                       TRUE ~ "incorrect"))
+df$difference <- as.factor(df$difference)
 df$BF.3.cor <- as_factor(df$BF.3.cor) %>% fct_relevel(c("incorrect", "correct"))
 df$BF.10.cor <- as_factor(df$BF.10.cor) %>% fct_relevel(c("incorrect", "correct"))
 df$BF.30.cor <- as_factor(df$BF.30.cor) %>% fct_relevel(c("incorrect", "correct"))
@@ -248,6 +286,7 @@ df$BF1.decision <- as_factor(df$BF1.decision) %>% fct_relevel(c("null", "alt"))
 df$HDI.decision <- as.factor(df$HDI.decision)  %>% fct_relevel(c("null", "alt"))
 df$HDI.est.correct <- as.factor(df$HDI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
 df$CI.est.correct <- as.factor(df$CI.est.correct) %>% fct_relevel(c("incorrect", "correct"))
+
 ```
 # Visualizations
 
@@ -267,124 +306,247 @@ df$CI.est.correct <- as.factor(df$CI.est.correct) %>% fct_relevel(c("incorrect",
   p.dis.n500)
 ```
 
-
-## Visualize p(Ha) and BF decisions
+## Visualize p correct and BF correct for null
 ```{r}
-ggplot(data = df, aes(x = post.alt)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
-ggplot(data = df, aes(x = p)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+p.correct.percentage.0 <- df0 %>%
+  group_by(n_num, p.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-bf3.tally <- df %>%
-  group_by(n, BF3.decision) %>%
-  tally()
+BF1.correct.percentage.0 <- df0 %>%
+  group_by(n_num, BF1.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-bf10.tally <- df %>%
-  group_by(n, BF10.decision) %>%
-  tally()
+HDI.correct.percentage.0 <- df0 %>%
+  group_by(n_num, HDI.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-bf30.tally <- df %>%
-  group_by(n, BF30.decision) %>%
-  tally()
+BF3.correct.percentage.0 <- df0 %>%
+  group_by(n_num, BF.3.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
+  
 
-p.tally <- df %>%
-  group_by(n, p.decision) %>%
-  tally()
+BF10.correct.percentage.0 <- df0 %>%
+  group_by(n_num, BF.10.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-HDI.hyp.tally <- df %>%
-  group_by(n, HDI.decision) %>%
-  tally()
+correct.rows.BF30.cor0 <- data.frame(c(10, 32, 64, 100, 300, 500, 2000),
+        c("correct", "correct", "correct", "correct", "correct", "correct", "correct"),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0))
 
-HDI.est.tally <- df %>%
-  group_by(n, HDI.est.correct) %>%
-  tally()
+names(correct.rows.BF30.cor0) <- c("n_num", "BF.30.cor", "N", "freq", "pct")
 
-CI.est.tally <- df %>%
-  group_by(n, CI.est.correct) %>%
-  tally()
+BF30.correct.percentage.0 <- df0 %>%
+  group_by(n_num, BF.30.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100) %>%
+  as.data.frame() %>%
+  plyr::rbind.fill(correct.rows.BF30.cor0)
+BF30.correct.percentage.0$BF.30.cor <- as_factor(BF30.correct.percentage.0$BF.30.cor)
 
-
-
-ggplot(bf3.tally, aes(x = n, y = nn, fill = BF3.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(bf10.tally, aes(x = n, y = nn, fill = BF10.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(bf30.tally, aes(x = n, y = nn, fill = BF30.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(p.tally, aes(x = n, y = nn, fill = p.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(HDI.hyp.tally, aes(x = n, y = nn, fill = HDI.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
-
-ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
-
-skrrrahh("snoop")
-praise()
+ggplot(NULL, aes(x = n_num, y = pct)) + 
+  ylim(0, 100) +
+  geom_point(data = p.correct.percentage.0[p.correct.percentage.0$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_line(data = p.correct.percentage.0[p.correct.percentage.0$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_point(data = HDI.correct.percentage.0[HDI.correct.percentage.0$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_line(data = HDI.correct.percentage.0[HDI.correct.percentage.0$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_point(data = BF1.correct.percentage.0[BF1.correct.percentage.0$BF1.correct == "correct", ], aes(color = "BF > 1")) + 
+  geom_line(data = BF1.correct.percentage.0[BF1.correct.percentage.0$BF1.correct == "correct", ], aes(color = "BF > 1")) + 
+  geom_point(data = BF3.correct.percentage.0[BF3.correct.percentage.0$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  geom_line(data = BF3.correct.percentage.0[BF3.correct.percentage.0$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  geom_point(data = BF10.correct.percentage.0[BF10.correct.percentage.0$BF.10.cor == "correct", ], aes(color = "BF > 10")) +
+  geom_line(data = BF10.correct.percentage.0[BF10.correct.percentage.0$BF.10.cor == "correct", ], aes(color = "BF > 10")) +
+  geom_point(data = BF30.correct.percentage.0[BF30.correct.percentage.0$BF.30.cor == "correct", ], aes(color = "BF > 30")) +
+  geom_line(data = BF30.correct.percentage.0[BF30.correct.percentage.0$BF.30.cor == "correct", ], aes(color = "BF > 30")) +
+ scale_colour_manual("", 
+                      breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
+                      values = c("black", "blue", "pink", "orange", "red", "purple")) +
+  theme_apa() +
+  scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
+  ylab("Percentage of Correct Samples") +
+  ggtitle("Times Chosen for the Null when it is True")
 ```
 
-# Create line plots
+## Visualize incorrect p and BF decisions for null
 ```{r}
-ggplot(data = df, aes(x = post.alt)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
-ggplot(data = df, aes(x = p)) + geom_histogram() + facet_grid(cols = vars(n)) + theme_apa() + scale_fill_grey()
+BF3.incorrect.percentage.0 <- df0 %>%
+  group_by(n_num, BF.3.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
+  
+BF10.incorrect.percentage.0 <- df0 %>%
+group_by(n_num, BF.10.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-bf3.tally <- df %>%
-  group_by(n, BF3.decision) %>%
-  tally()
+BF30.incorrect.percentage.0 <- df0 %>%
+  group_by(n_num, BF.30.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-bf10.tally <- df %>%
-  group_by(n, BF10.decision) %>%
-  tally()
+ggplot(NULL, aes(x = n_num, y = pct)) + 
+  ylim(0, 15) +
+  geom_point(data = p.correct.percentage.0[p.correct.percentage.0$p.correct == "incorrect", ], aes(color = "p < .05")) + 
+  geom_line(data = p.correct.percentage.0[p.correct.percentage.0$p.correct == "incorrect", ], aes(color = "p < .05")) + 
+  geom_point(data = HDI.correct.percentage.0[HDI.correct.percentage.0$HDI.correct == "incorrect", ], aes(color = "HDI")) +
+  geom_line(data = HDI.correct.percentage.0[HDI.correct.percentage.0$HDI.correct == "incorrect", ], aes(color = "HDI")) +
+  geom_point(data = BF1.correct.percentage.0[BF1.correct.percentage.0$BF1.correct == "incorrect", ], aes(color = "BF > 1")) + 
+  geom_line(data = BF1.correct.percentage.0[BF1.correct.percentage.0$BF1.correct == "incorrect", ], aes(color = "BF > 1")) + 
+  geom_point(data = BF3.incorrect.percentage.0[BF3.incorrect.percentage.0$BF.3.ninc == "incorrect", ], aes(color = "BF > 3")) +
+  geom_line(data = BF3.incorrect.percentage.0[BF3.incorrect.percentage.0$BF.3.ninc == "incorrect", ], aes(color = "BF > 3")) +
+  geom_point(data = BF10.incorrect.percentage.0[BF10.incorrect.percentage.0$BF.10.ninc == "incorrect", ], aes(color = "BF > 10")) +
+  geom_line(data = BF10.incorrect.percentage.0[BF10.incorrect.percentage.0$BF.10.ninc == "incorrect", ], aes(color = "BF > 10")) +
+  geom_point(data = BF30.incorrect.percentage.0[BF30.incorrect.percentage.0$BF.30.ninc == "incorrect", ], aes(color = "BF > 30")) +
+  geom_line(data = BF30.incorrect.percentage.0[BF30.incorrect.percentage.0$BF.30.ninc == "incorrect", ], aes(color = "BF > 30")) +
+  scale_colour_manual("", 
+                      breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
+                      values = c("black", "blue", "pink", "orange", "red", "purple")) +
+  theme_apa() +
+  scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
+  ylab("Percentage of Incorrect Samples") +
+  ggtitle("Times Chosen for the Alternative when the Null is True")
+```
 
-bf30.tally <- df %>%
-  group_by(n, BF30.decision) %>%
-  tally()
+## Visualize p correct and BF correct for alt
+```{r}
+p.correct.percentage <- df %>%
+  group_by(n_num, p.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-p.tally <- df %>%
-  group_by(n_num, p.decision) %>%
-  tally()
+BF1.correct.percentage <- df %>%
+  group_by(n_num, BF1.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-HDI.hyp.tally <- df %>%
-  group_by(n_num, HDI.decision) %>%
-  tally()
+HDI.correct.percentage <- df %>%
+  group_by(n_num, HDI.correct, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-HDI.est.tally <- df %>%
-  group_by(n, HDI.est.correct) %>%
-  tally()
+BF3.correct.percentage <- df %>%
+  group_by(n_num, BF.3.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-CI.est.tally <- df %>%
-  group_by(n, CI.est.correct) %>%
-  tally()
+BF10.correct.percentage <- df %>%
+group_by(n_num, BF.10.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
+BF30.correct.percentage <- df %>%
+  group_by(n_num, BF.30.cor, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
+ggplot(NULL, aes(x = n_num, y = pct)) + 
+  ylim(0, 100) +
+  geom_point(data = p.correct.percentage[p.correct.percentage$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_line(data = p.correct.percentage[p.correct.percentage$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_point(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_line(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_point(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "correct", ], aes(color = "BF > 1")) + 
+  geom_line(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "correct", ], aes(color = "BF > 1")) +
+  geom_point(data = BF3.correct.percentage[BF3.correct.percentage$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  geom_line(data = BF3.correct.percentage[BF3.correct.percentage$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  geom_point(data = BF10.correct.percentage[BF10.correct.percentage$BF.10.cor == "correct", ], aes(color = "BF > 10")) +
+  geom_line(data = BF10.correct.percentage[BF10.correct.percentage$BF.10.cor == "correct", ], aes(color = "BF > 10")) +
+  geom_point(data = BF30.correct.percentage[BF30.correct.percentage$BF.30.cor == "correct", ], aes(color = "BF > 30")) +
+  geom_line(data = BF30.correct.percentage[BF30.correct.percentage$BF.30.cor == "correct", ], aes(color = "BF > 30")) +
+  scale_colour_manual("", 
+                      breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
+                      values = c("black", "blue", "pink", "orange", "red", "purple")) +
+  theme_apa() +
+  scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
+  ylab("Percentage of Correct Samples") +
+  ggtitle("Times Chosen for the Alternative when it is True")
+```
 
-ggplot(bf3.tally, aes(x = n, y = nn, fill = BF3.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(bf10.tally, aes(x = n, y = nn, fill = BF10.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(bf30.tally, aes(x = n, y = nn, fill = BF30.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(p.tally, aes(x = n, y = nn, fill = p.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(HDI.hyp.tally, aes(x = n, y = nn, fill = HDI.decision)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+## Visualize incorrect p and BF decisions for alt
+```{r}
+incorrect.rows.BF10.incor <- data.frame(c(10, 32, 64, 100, 300, 500, 2000),
+        c("incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "inorrect"),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0))
 
-ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+names(incorrect.rows.BF10.incor) <- c("n_num", "BF.10.ninc", "N", "freq", "pct")
 
-# Make line plots
-ggplot(p.tally[p.tally$p.decision == "alt", ], aes(x = n_num, y = n)) + 
-  geom_point() + 
-  geom_line() + 
-  theme_apa() + 
-  scale_fill_grey() + 
-  xlab("Sample Size") +
-  ylab("Number of Correct Samples for p-value")
-ggplot(HDI.hyp.tally[HDI.hyp.tally$HDI.decision == "alt", ], aes(x = n_num, y = n)) + 
-  geom_point() + 
-  geom_line() + 
-  theme_apa() + 
-  scale_fill_grey() + 
-  xlab("Sample Size") +
-  ylab("Number of Correct Samples for HDI")
-ggplot(HDI.est.tally, aes(x = n, y = nn, fill = HDI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
-ggplot(CI.est.tally, aes(x = n, y = nn, fill = CI.est.correct)) + geom_col() + theme_apa() + scale_fill_grey()
+incorrect.rows.BF30.incor <- data.frame(c(10, 32, 64, 100, 300, 500, 2000),
+        c("incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "inorrect"),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0, 0))
 
-ggplot(df, aes(x = p, y = post.null, color = n)) + geom_point() + theme_apa() + scale_fill_grey()
+names(incorrect.rows.BF30.incor) <- c("n_num", "BF.30.ninc", "N", "freq", "pct")
 
+BF3.incorrect.percentage <- df %>%
+  group_by(n_num, BF.3.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)
 
-skrrrahh("snoop")
-praise()
+BF10.incorrect.percentage <- df %>%
+group_by(n_num, BF.10.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100)  %>%
+  as.data.frame() %>%
+  plyr::rbind.fill(incorrect.rows.BF10.incor)
+
+BF10.incorrect.percentage$BF.10.ninc <- as_factor(BF10.incorrect.percentage$BF.10.ninc)
+
+BF30.incorrect.percentage <- df %>%
+  group_by(n_num, BF.30.ninc, .drop = FALSE) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N/sum(N),
+         pct = freq*100) %>%
+  as.data.frame() %>%
+  plyr::rbind.fill(incorrect.rows.BF30.incor)
+BF30.incorrect.percentage$BF.30.ninc <- as_factor(BF30.incorrect.percentage$BF.30.ninc)
+
+ggplot(NULL, aes(x = n_num, y = pct)) + 
+  ylim(0, 100) +
+  geom_point(data = p.correct.percentage[p.correct.percentage$p.correct == "incorrect", ], aes(color = "p < .05")) + 
+  geom_line(data = p.correct.percentage[p.correct.percentage$p.correct == "incorrect", ], aes(color = "p < .05")) + 
+  geom_point(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "incorrect", ], aes(color = "HDI")) +
+  geom_line(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "incorrect", ], aes(color = "HDI")) +
+  geom_point(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "incorrect", ], aes(color = "BF > 1")) + 
+  geom_line(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "incorrect", ], aes(color = "BF > 1")) + 
+  geom_point(data = BF3.incorrect.percentage[BF3.incorrect.percentage$BF.3.ninc == "incorrect", ], aes(color = "BF > 3")) +
+  geom_line(data = BF3.incorrect.percentage[BF3.incorrect.percentage$BF.3.ninc == "incorrect", ], aes(color = "BF > 3")) +
+  geom_point(data = BF10.incorrect.percentage[BF10.incorrect.percentage$BF.10.ninc == "incorrect", ], aes(color = "BF > 10")) +
+  geom_line(data = BF10.incorrect.percentage[BF10.incorrect.percentage$BF.10.ninc == "incorrect", ], aes(color = "BF > 10")) +
+  geom_point(data = BF30.incorrect.percentage[BF30.incorrect.percentage$BF.30.ninc == "incorrect", ], aes(color = "BF > 30")) +
+  geom_line(data = BF30.incorrect.percentage[BF30.incorrect.percentage$BF.30.ninc == "incorrect", ], aes(color = "BF > 30")) +
+  scale_colour_manual("", 
+                      breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
+                      values = c("black", "blue", "pink", "orange", "red", "purple")) +
+  theme_apa() +
+  scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
+  ylab("Percentage of Incorrect Samples") +
+  ggtitle("Times Chosen for the Null when the Alternative is True")
 ```
 
 ## Examine precision of confidence interval and HDI
@@ -531,3 +693,25 @@ s <- 0.1
 
 skrrrahh("snoop")
 ```
+
+## Bar plots for corresponding conclusions at null
+```{r}
+ggplot(data = df0,
+       aes(x = BF1.decision, fill = HDI.decision)) + 
+  facet_grid(cols = vars(n)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)*5)) +
+  ylab(label = "Percentage") +
+  xlab(label = "Decision for Decision Rule BF > 1") +
+  theme_apa()
+
+```
+## Bar plots for corresponding conclusions for alternative
+```{r}
+ggplot(data = df,
+       aes(x = BF1.decision, fill = HDI.decision)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  ylab(label = "Percentage") +
+  xlab(label = "Decision for Decision Rule BF > 1") +
+  theme_apa()
+```
+
