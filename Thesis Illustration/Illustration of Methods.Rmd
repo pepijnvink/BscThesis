@@ -35,7 +35,7 @@ y2 <- rnorm(n = n, mean = mean2, sd = sd)
 
 # Perform frequentist t-test
 ```{r}
-(result_freq <- t.test(y1, y2))
+(result_freq <- t.test(y1, y2, var.equal = TRUE))
 ```
 # Perform Bayesian analyses
 ```{r}

@@ -482,6 +482,26 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
   ylab("Percentage of Correct Samples") +
   ggtitle("Times Chosen for the Alternative when it is True")
 ```
+## Above without 10 and 30 as cutoffs
+```{r}
+ggplot(NULL, aes(x = n_num, y = pct)) + 
+  ylim(0, 100) +
+  geom_point(data = p.correct.percentage[p.correct.percentage$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_line(data = p.correct.percentage[p.correct.percentage$p.correct == "correct", ], aes(color = "p < .05")) + 
+  geom_point(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_line(data = HDI.correct.percentage[HDI.correct.percentage$HDI.correct == "correct", ], aes(color = "HDI")) +
+  geom_point(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "correct", ], aes(color = "BF > 1")) + 
+  geom_line(data = BF1.correct.percentage[BF1.correct.percentage$BF1.correct == "correct", ], aes(color = "BF > 1")) +
+  geom_point(data = BF3.correct.percentage[BF3.correct.percentage$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  geom_line(data = BF3.correct.percentage[BF3.correct.percentage$BF.3.cor == "correct", ], aes(color = "BF > 3")) +
+  scale_colour_manual("", 
+                      breaks = c("p < .05", "HDI", "BF > 1", "BF > 3"),
+                      values = c("black", "blue", "pink", "orange")) +
+  theme_apa() +
+  scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
+  ylab("Percentage of Correct Samples") +
+  ggtitle("Times Chosen for the Alternative when it is True")
+```
 
 ## Visualize incorrect p and BF decisions for alt
 ```{r}
@@ -697,9 +717,8 @@ skrrrahh("snoop")
 ## Bar plots for corresponding conclusions at null
 ```{r}
 ggplot(data = df0,
-       aes(x = BF1.decision, fill = HDI.decision)) + 
-  facet_grid(cols = vars(n)) +
-  geom_bar(aes(y = (..count..)/sum(..count..)*5)) +
+       aes(x = BF1.decision, fill = HDI.decision)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
   ylab(label = "Percentage") +
   xlab(label = "Decision for Decision Rule BF > 1") +
   theme_apa()
