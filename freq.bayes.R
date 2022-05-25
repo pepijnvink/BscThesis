@@ -1,10 +1,8 @@
 # R function to simulate data for frequentist and Bayesian t-tests
-freq.bayes <- function(sample.size = 10, iterations = 10, mean.low = 100, sd = 10, difference = 0, seed = NA){
+freq.bayes <- function(sample.size = 10, iterations = 10, mean.low = 100, sd = 10, difference = 0){
   col_names <- c("difference", "n", "mean1", "mean2", "sd", "y1", "y2", "diff_obs", "p", "ci.low","ci.high", "HDI.low", "HDI.high", "BayesFactor", "BFa", "p.decision", "BF1.decision", "BF3.decision", "BF10.decision", "BF30.decision", "BF.3.cor", "BF.10.cor", "BF.30.cor", "BF.3.ninc", "BF.10.ninc", "BF.30.ninc", "BF.evidence", "post.null", "post.alt", "HDI.decision", "CI.est.correct", "HDI.est.correct", "ci.width", "hdi.width")
   
   save <- matrix(data = NA, nrow = iterations, ncol = 34) # create matrix for data to be added to
-  
-  set.seed(seed)
   for(i in 1:iterations){
     diff <- difference
     n <- sample.size

@@ -44,46 +44,50 @@ pwr.t.test(d = 0.5, power = 0.8, type = "two.sample", alternative = "two.sided")
 ## No effect
 
 ```{r simulate-null, message = FALSE}
+set.seed(42)
+
 # n = 10
-df0.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000, seed = 42))
+df0.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000))
 
 # n = 32
-df0.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000, seed = 42))
+df0.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000))
 
 # n = 64
-df0.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed = 42))
+df0.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000))
 
 # n = 100
-df0.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42))
+df0.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000))
 
 # n = 300
-df0.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000, seed = 42))
+df0.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000))
 
 # n = 500
-df0.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42))
+df0.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000))
 ```
 
 
 ## Medium effect (delta = 0.5, difference = 5)
 
-```{r sumulate-effect, message = FALSE}
+```{r simulate-effect, message = FALSE}
+set.seed(69)
+
 # n = 10
-df.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000, seed = 42, difference = 5))
+df.n10 <- as.data.frame(freq.bayes(sample.size = 10, iterations = 10000, difference = 5))
 
 # n = 32
-df.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000, seed = 42, difference = 5))
+df.n32 <- as.data.frame(freq.bayes(sample.size = 32, iterations = 10000, difference = 5))
 
 # n = 64
-df.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, seed = 42, difference = 5))
+df.n64 <- as.data.frame(freq.bayes(sample.size = 64, iterations = 10000, difference = 5))
 
 # n = 100
-df.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, seed = 42, difference = 5))
+df.n100 <- as.data.frame(freq.bayes(sample.size = 100, iterations = 10000, difference = 5))
 
 # n = 300
-df.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000, seed = 42, difference = 5))
+df.n300 <- as.data.frame(freq.bayes(sample.size = 300, iterations = 10000, difference = 5))
 
 # n = 500
-df.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, seed = 42, difference = 5))
+df.n500 <- as.data.frame(freq.bayes(sample.size = 500, iterations = 10000, difference = 5))
 ```
 
 
@@ -224,9 +228,9 @@ BF10.correct.percentage.0 <- df0 %>%
 
 correct.rows.BF30.cor0 <- data.frame(c(10, 32, 64, 100, 300, 500),
         c("correct", "correct", "correct", "correct", "correct", "correct"),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0))
+        c(0, 0, 0, 0, 0, 0 ),
+        c(0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0))
 
 names(correct.rows.BF30.cor0) <- c("n_num", "BF.30.cor", "N", "freq", "pct")
 
@@ -391,17 +395,17 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
 ```{r}
 incorrect.rows.BF10.incor <- data.frame(c(10, 32, 64, 100, 300, 500),
         c("incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "incorrect"),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0))
+        c(0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0))
 
 names(incorrect.rows.BF10.incor) <- c("n_num", "BF.10.ninc", "N", "freq", "pct")
 
 incorrect.rows.BF30.incor <- data.frame(c(10, 32, 64, 100, 300, 500),
         c("incorrect", "incorrect", "incorrect", "incorrect", "incorrect", "incorrect"),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0),
-        c(0, 0, 0, 0, 0, 0, 0))
+        c(0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0),
+        c(0, 0, 0, 0, 0, 0))
 
 names(incorrect.rows.BF30.incor) <- c("n_num", "BF.30.ninc", "N", "freq", "pct")
 
@@ -647,8 +651,6 @@ s <- 0.1
 
 # For CI and HDI estimation ----------------------------------------------------
 (hdi.ci.plot <- ggplot(df, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-
-skrrrahh("snoop")
 ```
 
 ## Bar plots for corresponding conclusions at null
@@ -673,3 +675,44 @@ ggplot(data = df,
   xlab(label = "Decision for Decision Rule BF > 1") +
   theme_apa()
 ```
+
+# Compare estimation
+
+Load a function that computed if intervals (CI and HDI) contain the mean of a next replication. For the last set in the data, the mean difference of the first row is used.
+
+```{r}
+source("interval_inclusion.R")
+```
+
+## Run computations
+
+```{r}
+# Null
+inc.null.10 <- interval_inclusion(df0[df0$n == 10,])
+
+inc.null.32 <- interval_inclusion(df0[df0$n == 32,])
+
+inc.null.64 <- interval_inclusion(df0[df0$n == 64,])
+
+inc.null.100 <- interval_inclusion(df0[df0$n == 100,])
+
+inc.null.300 <- interval_inclusion(df0[df0$n == 300,])
+
+inc.null.500 <- interval_inclusion(df0[df0$n == 500,])
+
+
+# Alt
+inc.alt.10 <- interval_inclusion(df[df$n == 10,])
+
+inc.alt.32 <- interval_inclusion(df[df$n == 32,])
+
+inc.alt.64 <- interval_inclusion(df[df$n == 64,])
+
+inc.alt.100 <- interval_inclusion(df[df$n == 100,])
+
+inc.alt.300 <- interval_inclusion(df[df$n == 300,])
+
+inc.alt.500 <- interval_inclusion(df[df$n == 500,])
+```
+
+
