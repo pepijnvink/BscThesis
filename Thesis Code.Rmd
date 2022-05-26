@@ -31,6 +31,24 @@ Load function to make simulation more smooth. BF 'cutoffs' and evidence levels a
 source("freq.bayes.R")
 ```
 
+# Set theme
+```{r}
+apatheme <- theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        axis.line = element_line(),
+        plot.title = element_text(size = 12,
+                                  family = "Times"),
+        text = element_text(size = 12,
+                            family = 'Times'),
+        legend.title = element_blank(),
+        axis.text.y = element_text(size = 12,
+                                   family = "Times"),
+        axis.text.x = element_text(size = 12,
+                                   family = "Times"))
+```
+
 
 # Simulate different sample sizes
 
@@ -258,10 +276,9 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
  scale_colour_manual("", 
                       breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
                       values = c("black", "blue", "pink", "orange", "red", "purple")) +
-  theme_apa() +
+  apatheme +
   scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
-  ylab("Percentage of Correct Samples") +
-  ggtitle("Times Chosen for the Null when it is True")
+  ylab("Percentage of Correct Samples")
 ```
 
 ## Visualize incorrect p and BF decisions for null
@@ -300,10 +317,9 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
   scale_colour_manual("", 
                       breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
                       values = c("black", "blue", "pink", "orange", "red", "purple")) +
-  theme_apa() +
+  apatheme +
   scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500, 2000)) +
-  ylab("Percentage of Incorrect Samples") +
-  ggtitle("Times Chosen for the Alternative when the Null is True")
+  ylab("Percentage of Incorrect Samples")
 ```
 
 ## Visualize p correct and BF correct for alt
@@ -362,10 +378,9 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
   scale_colour_manual("", 
                       breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
                       values = c("black", "blue", "pink", "orange", "red", "purple")) +
-  theme_apa() +
+  apatheme +
   scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500)) +
-  ylab("Percentage of Correct Samples") +
-  ggtitle("Times Chosen for the Alternative when it is True")
+  ylab("Percentage of Correct Samples")
 ```
 
 ## Above without 10 and 30 as cutoffs
@@ -384,10 +399,9 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
   scale_colour_manual("", 
                       breaks = c("p < .05", "HDI", "BF > 1", "BF > 3"),
                       values = c("black", "blue", "pink", "orange")) +
-  theme_apa() +
+  apatheme +
   scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500)) +
-  ylab("Percentage of Correct Samples") +
-  ggtitle("Times Chosen for the Alternative when it is True")
+  ylab("Percentage of Correct Samples")
 ```
 
 ## Visualize incorrect p and BF decisions for alt
@@ -452,10 +466,9 @@ ggplot(NULL, aes(x = n_num, y = pct)) +
   scale_colour_manual("", 
                       breaks = c("p < .05", "HDI", "BF > 1", "BF > 3", "BF > 10", "BF > 30"),
                       values = c("black", "blue", "pink", "orange", "red", "purple")) +
-  theme_apa() +
+  apatheme +
   scale_x_continuous(name = "Sample Size", breaks = c(10, 32, 64, 100, 300, 500)) +
-  ylab("Percentage of Incorrect Samples") +
-  ggtitle("Times Chosen for the Null when the Alternative is True")
+  ylab("Percentage of Incorrect Samples")
 ```
 
 ## Examine precision of confidence interval and HDI
@@ -471,115 +484,159 @@ Create density plots for null
 
 ```{r}
 width.plot0.10 <- data.frame(x = c(df0[df0$n == 10,]$ci.width, df0[df0$n == 10,]$hdi.width), 
-                             type = rep(c("CI Width", "HDI Width"), 
+                             type = rep(c("Confidence Interval", "HDI"), 
                                       c(length(df0[df0$n == 10,]$ci.width), 
                                         length(df0[df0$n == 10,]$hdi.width)))) %>%
   ggplot() + 
-  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  geom_density(aes(x=x, fill=type), alpha = 0.5) +
+  scale_fill_grey() +
+  ggtitle("n = 10") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot0.32 <- data.frame(x = c(df0[df0$n == 32,]$ci.width, df0[df0$n == 32,]$hdi.width), 
-                             type = rep(c("CI Width", "HDI Width"), 
+                             type = rep(c("Confidence Interval", "HDI"), 
                                         c(length(df0[df0$n == 32,]$ci.width), 
                                           length(df0[df0$n == 32,]$hdi.width)))) %>%
   ggplot() + 
-  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  geom_density(aes(x=x, fill=type), alpha = 0.5) +
+  scale_fill_grey() +
+  ggtitle("n = 32") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot0.64 <- data.frame(x = c(df0[df0$n == 64,]$ci.width, df0[df0$n == 64,]$hdi.width),
-                             type = rep(c("CI Width", "HDI Width"),
+                             type = rep(c("Confidence Interval", "HDI"),
                                         c(length(df0[df0$n == 64,]$ci.width), 
                                           length(df0[df0$n == 64,]$hdi.width)))) %>%
   ggplot() + 
-  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  geom_density(aes(x=x, fill=type), alpha = 0.5) +
+  scale_fill_grey() +
+  ggtitle("n = 64") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot0.100 <- data.frame(x = c(df0[df0$n == 100,]$ci.width, df0[df0$n == 100,]$hdi.width), 
-                              type=rep(c("CI Width", "HDI Width"), 
+                              type=rep(c("Confidence Interval", "HDI"), 
                                        c(length(df0[df0$n == 100,]$ci.width), 
                                          length(df0[df0$n == 100,]$hdi.width)))) %>%
   ggplot() + 
-  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  geom_density(aes(x=x, fill=type), alpha = 0.5) +
+  scale_fill_grey() +
+  ggtitle("n = 100") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot0.300 <- data.frame(x = c(df0[df0$n == 300,]$ci.width, df0[df0$n == 300,]$hdi.width), 
-                              type=rep(c("CI Width", "HDI Width"), 
+                              type=rep(c("Confidence Interval", "HDI"), 
                                        c(length(df0[df0$n == 300,]$ci.width), 
                                          length(df0[df0$n == 300,]$hdi.width)))) %>%
   ggplot() + 
   geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  scale_fill_grey() +
+  ggtitle("n = 300") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot0.500 <- data.frame(x = c(df0[df0$n == 500,]$ci.width, df0[df0$n == 500,]$hdi.width), 
-                              type=rep(c("CI Width", "HDI Width"), 
+                              type=rep(c("Confidence Interval", "HDI"), 
                                        c(length(df0[df0$n == 500,]$ci.width), 
                                          length(df0[df0$n == 500,]$hdi.width)))) %>%
   ggplot() + 
   geom_density(aes(x=x, fill=type), alpha = 0.5) + 
-  theme_apa() + 
-  scale_fill_grey()
+  scale_fill_grey() +
+  ggtitle("n = 500") +
+  xlab("Interval Width") +
+  apatheme
 
 width_plot0 <- width.plot0.10/
 width.plot0.32/
 width.plot0.64/
-width.plot0.100/
-width.plot0.300/
-width.plot0.500
+width.plot0.100
 
-(width_plot0 <- width_plot0 & xlim(0, 30))
+width_plot0 <- width_plot0 + plot_layout(guides = "collect")  & xlim(0, 30)
+width_plot0
 ```
 Create density plots for delta = 0.5
 
 ```{r}
 width.plot.10 <- data.frame(x = c(df[df$n == 10,]$ci.width, df[df$n == 10,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 10,]$ci.width), 
                                        length(df[df$n == 10,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  scale_fill_grey() +
+  ggtitle("n = 10") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot.32 <- data.frame(x = c(df[df$n == 32,]$ci.width, df[df$n == 32,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 32,]$ci.width), 
                                        length(df[df$n == 32,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  scale_fill_grey() +
+  ggtitle("n = 32") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot.64 <- data.frame(x = c(df[df$n == 64,]$ci.width, df[df$n == 64,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 64,]$ci.width), 
                                        length(df[df$n == 64,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  theme_apa() + 
+  scale_fill_grey() +
+  ggtitle("n = 64") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot.100 <- data.frame(x = c(df[df$n == 100,]$ci.width, df[df$n == 100,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 100,]$ci.width), 
                                        length(df[df$n == 100,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  theme_apa() + 
+  scale_fill_grey() +
+  ggtitle("n = 100") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot.300 <- data.frame(x = c(df[df$n == 300,]$ci.width, df[df$n == 300,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 300,]$ci.width), 
                                        length(df[df$n == 300,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  theme_apa() + 
+  scale_fill_grey() +
+  ggtitle("n = 300") +
+  xlab("Interval Width") +
+  apatheme
 
 width.plot.500 <- data.frame(x = c(df[df$n == 500,]$ci.width, df[df$n == 500,]$hdi.width), 
-                            type=rep(c("CI Width", "HDI Width"), 
+                            type=rep(c("Confidence Interval", "HDI"), 
                                      c(length(df[df$n == 500,]$ci.width), 
                                        length(df[df$n == 500,]$hdi.width)))) %>%
-  ggplot() + geom_density(aes(x=x, fill=type), alpha = 0.5) + theme_apa() + scale_fill_grey()
+  ggplot() + 
+  geom_density(aes(x=x, fill=type), alpha = 0.5) + 
+  theme_apa() + 
+  scale_fill_grey() +
+  ggtitle("n = 500") +
+  xlab("Interval Width") +
+  apatheme
 
 width_plot <- width.plot.10/
 width.plot.32/
 width.plot.64/
-width.plot.100/
-width.plot.300/
-width.plot.500
+width.plot.100
 
-(width_plot <- width_plot & xlim(0, 30))
+width_plot <- width_plot + plot_layout(guides = "collect") & xlim(0, 30)
+width_plot
 ```
 
 
@@ -587,13 +644,27 @@ width.plot.500
 
 ```{r}
 # Set alpha and size -----------------------------------------------------------
-a <- 0.1
+a <- 0.2
 s <- 0.1
 
 # For p values and Bayes factor cutoffs-----------------------------------------
-(bf3.p.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf10.p.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf30.p.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf3.p.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = p.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
+
+(bf10.p.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = p.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
+
+(bf30.p.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = p.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
 
 (bf.p.plot.0 <- 
   bf3.p.plot.0/
@@ -602,9 +673,23 @@ s <- 0.1
 
 # For HDI and BF cutoffs --------------------------------------------------------
 
-(bf3.hdi.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf10.hdi.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf30.hdi.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf3.hdi.plot.0 <- ggplot(df0, aes(x = BF3.decision, y = HDI.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   theme_apa() + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
+
+(bf10.hdi.plot.0 <- ggplot(df0, aes(x = BF10.decision, y = HDI.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
+
+(bf30.hdi.plot.0 <- ggplot(df0, aes(x = BF30.decision, y = HDI.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
 
 (bf.hdi.plot.0 <- 
   bf3.hdi.plot.0/
@@ -612,10 +697,23 @@ s <- 0.1
   bf30.hdi.plot.0)
 
 # For p values and HDI ---------------------------------------------------------
-(hdi.p.plot.0 <- ggplot(df0, aes(x = HDI.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(hdi.p.plot.0 <- ggplot(df0, aes(x = HDI.decision, y = p.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
 
 # For CI and HDI estimation ----------------------------------------------------
-(hdi.ci.plot.0 <- ggplot(df0, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+hdi.ci.plot.0 <- ggplot(df0, aes(x = HDI.est.correct, y = CI.est.correct)) + 
+  geom_jitter(alpha = a, size = s) + 
+  apatheme +
+  scale_x_discrete(name = "HDI Inclusion",
+                   labels = c("Not Included",
+                              "Included")) +
+  scale_y_discrete(name = "CI Inclusion",
+                   labels = c("Not Included",
+                              "Included"))
+hdi.ci.plot.0
 ```
 
 ## Show corresponding conclusions for d = 0.5
@@ -626,9 +724,22 @@ a <- 0.1
 s <- 0.1
 
 # For p values and Bayes factor cutoffs-----------------------------------------
-(bf3.p.plot <- ggplot(df, aes(x = BF3.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf10.p.plot <- ggplot(df, aes(x = BF10.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf30.p.plot <- ggplot(df, aes(x = BF30.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf3.p.plot <- ggplot(df, aes(x = BF3.decision, y = p.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
+
+(bf10.p.plot <- ggplot(df, aes(x = BF10.decision, y = p.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
+(bf30.p.plot <- ggplot(df, aes(x = BF30.decision, y = p.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
 
 (bf.p.plot <- 
   bf3.p.plot/
@@ -637,9 +748,23 @@ s <- 0.1
 
 # For HDI and BF cutoffs --------------------------------------------------------
 
-(bf3.hdi.plot <- ggplot(df, aes(x = BF3.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf10.hdi.plot <- ggplot(df, aes(x = BF10.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
-(bf30.hdi.plot <- ggplot(df, aes(x = BF30.decision, y = HDI.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(bf3.hdi.plot <- ggplot(df, aes(x = BF3.decision, y = HDI.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
+
+(bf10.hdi.plot <- ggplot(df, aes(x = BF10.decision, y = HDI.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
+
+(bf30.hdi.plot <- ggplot(df, aes(x = BF30.decision, y = HDI.decision)) + 
+    geom_jitter(alpha = a, size = s) + 
+    apatheme + 
+    scale_fill_grey() + 
+    facet_grid(cols = vars(n)))
 
 (bf.hdi.plot <- 
   bf3.hdi.plot/
@@ -647,10 +772,18 @@ s <- 0.1
   bf30.hdi.plot)
 
 # For p values and HDI ---------------------------------------------------------
-(hdi.p.plot <- ggplot(df, aes(x = HDI.decision, y = p.decision)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(hdi.p.plot <- ggplot(df, aes(x = HDI.decision, y = p.decision)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
 
 # For CI and HDI estimation ----------------------------------------------------
-(hdi.ci.plot <- ggplot(df, aes(x = HDI.est.correct, y = CI.est.correct)) + geom_jitter(alpha = a, size = s) + theme_apa() + scale_fill_grey() + facet_grid(cols = vars(n)))
+(hdi.ci.plot <- ggplot(df, aes(x = HDI.est.correct, y = CI.est.correct)) + 
+   geom_jitter(alpha = a, size = s) + 
+   apatheme + 
+   scale_fill_grey() + 
+   facet_grid(cols = vars(n)))
 ```
 
 ## Bar plots for corresponding conclusions at null
@@ -684,35 +817,260 @@ Load a function that computed if intervals (CI and HDI) contain the mean of a ne
 source("interval_inclusion.R")
 ```
 
-## Run computations
+## Compare inclusion of parameter value of HDI and CI
+
+```{r}
+# calculate proportion of times parameter included in 
+prop.param.ci.inclusion.null <- df0 %>%
+  filter(.$CI.est.correct == "correct") %>%
+  count() %>%
+  {./nrow(df0)}
+
+prop.param.hdi.inclusion.null <- df0 %>%
+  filter(.$HDI.est.correct == "correct") %>%
+  count() %>%
+  {./nrow(df0)}
+
+prop.param.ci.inclusion.alt <- df %>%
+  filter(.$CI.est.correct == "correct") %>%
+  count() %>%
+  {./nrow(df)}
+
+prop.param.hdi.inclusion.alt <- df %>%
+  filter(.$HDI.est.correct == "correct") %>%
+  count() %>%
+  {./nrow(df)}
+
+prop.param.ci.inclusion.null
+prop.param.ci.inclusion.alt
+
+prop.param.hdi.inclusion.null
+prop.param.hdi.inclusion.alt
+```
+
+## Run computations of HDI and CI inclusion
 
 ```{r}
 # Null
 inc.null.10 <- interval_inclusion(df0[df0$n == 10,])
 
+inc.null.10.ci <- inc.null.10[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.10.hdi <- inc.null.10[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.null.32 <- interval_inclusion(df0[df0$n == 32,])
+
+inc.null.32.ci <- inc.null.32[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.32.hdi <- inc.null.32[, 2] %>%
+  table() %>%
+  prop.table()
 
 inc.null.64 <- interval_inclusion(df0[df0$n == 64,])
 
+inc.null.64.ci <- inc.null.64[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.64.hdi <- inc.null.64[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.null.100 <- interval_inclusion(df0[df0$n == 100,])
+
+inc.null.100.ci <- inc.null.100[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.100.hdi <- inc.null.100[, 2] %>%
+  table() %>%
+  prop.table()
 
 inc.null.300 <- interval_inclusion(df0[df0$n == 300,])
 
+inc.null.300.ci <- inc.null.300[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.300.hdi <- inc.null.300[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.null.500 <- interval_inclusion(df0[df0$n == 500,])
+
+inc.null.500.ci <- inc.null.500[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.null.500.hdi <- inc.null.500[, 2] %>%
+  table() %>%
+  prop.table()
 
 
 # Alt
 inc.alt.10 <- interval_inclusion(df[df$n == 10,])
 
+inc.alt.10.ci <- inc.alt.10[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.10.hdi <- inc.alt.10[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.alt.32 <- interval_inclusion(df[df$n == 32,])
+
+inc.alt.32.ci <- inc.alt.32[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.32.hdi <- inc.alt.32[, 2] %>%
+  table() %>%
+  prop.table()
 
 inc.alt.64 <- interval_inclusion(df[df$n == 64,])
 
+inc.alt.64.ci <- inc.alt.64[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.64.hdi <- inc.alt.64[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.alt.100 <- interval_inclusion(df[df$n == 100,])
+
+inc.alt.100.ci <- inc.alt.100[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.100.hdi <- inc.alt.100[, 2] %>%
+  table() %>%
+  prop.table()
 
 inc.alt.300 <- interval_inclusion(df[df$n == 300,])
 
+inc.alt.300.ci <- inc.alt.300[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.300.hdi <- inc.alt.300[, 2] %>%
+  table() %>%
+  prop.table()
+
 inc.alt.500 <- interval_inclusion(df[df$n == 500,])
+
+inc.alt.500.ci <- inc.alt.500[, 1] %>%
+  table() %>%
+  prop.table()
+
+inc.alt.500.hdi <- inc.alt.500[, 2] %>%
+  table() %>%
+  prop.table()
+```
+
+## Visualization
+
+Visualize inclusion of replication means in confidence and highest density intervals
+
+```{r}
+replication.inclusion.null <- data.frame(n = c(10, 32, 64, 100, 300, 500),
+                                         ci.incl = c(inc.null.10.ci[1],
+                                                     inc.null.32.ci[1],
+                                                     inc.null.64.ci[1],
+                                                     inc.null.100.ci[1],
+                                                     inc.null.300.ci[2],
+                                                     inc.null.500.ci[1]),
+                                         hdi.incl = c(inc.null.10.hdi[1],
+                                                      inc.null.32.hdi[1],
+                                                      inc.null.64.hdi[1],
+                                                      inc.null.100.hdi[1],
+                                                      inc.null.300.hdi[2],
+                                                      inc.null.500.hdi[1])) %>%
+  ggplot(mapping = aes(x = n)) +
+  geom_line(aes(y = ci.incl, color = "CI")) +
+  geom_point(aes(y = ci.incl, color = "CI")) +
+  geom_line(aes(y = hdi.incl, color = "HDI")) +
+  geom_point(aes(y = hdi.incl, color = "HDI")) +
+  scale_x_continuous(name = "Sample Size", 
+                     breaks = c(10, 32, 64, 100, 300, 500)) +
+  scale_y_continuous(name = "Proportion of Replication Mean Inclusion",
+                     limits = c(0.8, 0.90)) +
+  scale_color_manual(name = "Interval Type",
+                     values = c("CI" = "red",
+                                "HDI" = "blue"),
+                     labels = c("CI",
+                                "HDI")) +
+  ggtitle(expression(delta~"= 0")) +
+  apatheme
+
+replication.inclusion.alt <- data.frame(n = c(10, 32, 64, 100, 300, 500),
+                                        ci.incl = c(inc.alt.10.ci[1],
+                                                    inc.alt.32.ci[1],
+                                                    inc.alt.64.ci[2],
+                                                    inc.alt.100.ci[1],
+                                                    inc.alt.300.ci[1],
+                                                    inc.alt.500.ci[2]),
+                                        hdi.incl = c(inc.alt.10.hdi[1],
+                                                     inc.alt.32.hdi[1],
+                                                     inc.alt.64.hdi[2],
+                                                     inc.alt.100.hdi[1],
+                                                     inc.alt.300.hdi[1],
+                                                     inc.alt.500.hdi[1])) %>%
+  ggplot(mapping = aes(x = n)) +
+  geom_line(aes(y = ci.incl, color = "CI")) +
+  geom_point(aes(y = ci.incl, color = "CI")) +
+  geom_line(aes(y = hdi.incl, color = "HDI")) +
+  geom_point(aes(y = hdi.incl, color = "HDI")) +
+  scale_x_continuous(name = "Sample Size", 
+                     breaks = c(10, 32, 64, 100, 300, 500)) +
+  scale_y_continuous(name = NULL,
+                     limits = c(0.8, 0.90),
+                     breaks = NULL) +
+  scale_color_manual(name = "Interval Type",
+                     values = c("CI" = "red",
+                                "HDI" = "blue"),
+                     labels = c("CI",
+                                "HDI")) +
+  ggtitle(expression(delta~"= 0.5")) +
+  apatheme
+
+replication.inclusion.null
+replication.inclusion.alt
+
+capture.percentage <-  replication.inclusion.null + replication.inclusion.alt + plot_layout(guides = "collect") 
+
+capture.percentage
+```
+
+```{r}
+# times in null situation the CI is correct and the HDI is incorrect
+df0 %>%
+  filter(HDI.est.correct == "incorrect",
+         CI.est.correct == "correct") %>%
+  nrow()
+
+# times in null situation the HDI is correct and the CI is incorrect
+df0 %>%
+  filter(CI.est.correct == "incorrect",
+         HDI.est.correct == "correct") %>%
+  nrow()
+
+# times in difference situation the p-value indicates a significant negative effect
+df %>%
+  filter(p.decision == "alt",
+         diff_obs < 0)
+
+# times in difference situation the BF indicates a significant negative effect
+df %>%
+  filter(BF1.decision == "alt",
+         diff_obs < 0)
 ```
 
 
